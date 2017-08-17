@@ -1,5 +1,7 @@
 FROM itzg/minecraft-server
 
+SHELL ["/bin/bash", "-c"]
+
 ENV EULA=TRUE \
     ONLINE_MODE=FALSE \
     SEED=-9363708386013540 \
@@ -11,13 +13,14 @@ ENV EULA=TRUE \
 # Note: The 'sh -c' command stops with exit code 143
 RUN nohup /start >minecraft.out & 2>&1 \
     && sleep 2s \
-    && sh -c 'tail -n +0 -f minecraft.out | { sed "/RCON running/ q" && kill $$ ;}' \
-    ; rcon-cli --host 127.0.0.1 --port 25575 --password minecraft setworldspawn 555 66 439 \ 
+    && tail -n +0 -f minecraft.out & 2>&1 \
+    && grep -q "RCON running" <(tail -f minecraft.out) \
+    && rcon-cli --host 127.0.0.1 --port 25575 --password minecraft setworldspawn 555 66 439 \ 
     && rcon-cli --host 127.0.0.1 --port 25575 --password minecraft gamerule doDaylightCycle false \
     && rcon-cli --host 127.0.0.1 --port 25575 --password minecraft time set 6000 \
     && rcon-cli --host 127.0.0.1 --port 25575 --password minecraft stop \
-    && sh -c 'tail -n +0 -f minecraft.out | { sed "/Stopping server/ q" && kill $$ ;}' \
-    ; rm eula.txt \
+    && grep -q "Stopping server" <(tail -f minecraft.out) \
+    && rm eula.txt \
     && rm minecraft.out \
     && rm server.properties \
     && rm -r ./logs \
