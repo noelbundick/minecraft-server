@@ -19,13 +19,13 @@ RUN nohup /start >minecraft.out & 2>&1 \
     && rcon-cli --host 127.0.0.1 --port 25575 --password minecraft gamerule doDaylightCycle false \
     && rcon-cli --host 127.0.0.1 --port 25575 --password minecraft time set 6000 \
     && rcon-cli --host 127.0.0.1 --port 25575 --password minecraft stop \
-    && grep -q "Stopping server" <(tail -f minecraft.out) \
+    && while pidof java > /dev/null; do sleep 1; done; echo "Server stopped" \
     && rm eula.txt \
     && rm minecraft.out \
     && rm server.properties \
     && rm -r ./logs \
     && cp -r /data /default \
-    && chown -R minecraft:minecraft /default
+    && rm -rf /data/*
 
 ENV EULA= \
     RCON_PASSWORD=cheesesteakjimmys
