@@ -10,7 +10,6 @@ ENV EULA=TRUE \
     GUI=FALSE \
     CONSOLE=FALSE
 
-# Note: The 'sh -c' command stops with exit code 143
 RUN nohup /start >minecraft.out & 2>&1 \
     && sleep 2s \
     && tail -n +0 -f minecraft.out & 2>&1 \
