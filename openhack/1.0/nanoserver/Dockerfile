@@ -1,12 +1,12 @@
 # escape=`
-FROM minecraft-server:nanoserver
+FROM acanthamoeba/minecraft-server:nanoserver
 
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 ENV EULA=TRUE `
     ONLINE_MODE=FALSE `
     SEED=-9363708386013540 `
-    VERSION=1.12.1 `
+    VERSION=1.12.2 `
     DIFFICULTY=peaceful `
     GUI=FALSE `
     CONSOLE=FALSE
