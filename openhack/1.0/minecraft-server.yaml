@@ -1,0 +1,10 @@
+image: openhack/minecraft-server:1.0
+manifests:
+  - image: openhack/minecraft-server:1.0-alpine
+    platform:
+      architecture: amd64
+      os: linux
+  - image: openhack/minecraft-server:1.0-nanoserver
+    platform:
+      architecture: amd64
+      os: windows
