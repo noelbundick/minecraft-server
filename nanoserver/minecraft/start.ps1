@@ -19,6 +19,20 @@ $SERVER_PROPERTIES="/data/server.properties"
 $FTB_DIR="/data/FeedTheBeast"
 $VERSIONS_JSON="https://launchermeta.mojang.com/mc/game/version_manifest.json"
 
+# 2017-12-14 - Workaround for Azure Container Instances, where the network is not always immediately available for Windows Containers
+$isNetworkAvailable = $false
+while (!$isNetworkAvailable) {
+  try {
+    Invoke-WebRequest -Uri "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+    $isNetworkAvailable = $true
+  } 
+  catch {
+    $date = Get-Date -Format g
+    Write-Host "$data - Waiting on the network to become available"
+    Start-Sleep -Seconds 1
+  }
+}
+
 echo "Checking version information."
 switch -regex ("X$Env:VERSION")
 {
