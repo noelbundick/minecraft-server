@@ -5,6 +5,8 @@ USER ContainerAdministrator
 
 SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
+ENV PATH "C:\Windows\system32;C:\Users\ContainerUser\AppData\Local\Microsoft\WindowsApps;C:\Program Files\PowerShell;${JAVA_HOME}\bin;C:\tools"
+
 # TODO: Add Python for mcstatus
 # TODO: pip install mcstatus
 
