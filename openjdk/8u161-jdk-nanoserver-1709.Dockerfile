@@ -1,4 +1,4 @@
-FROM microsoft/powershell:6.0.1-nanoserver-1709
+FROM microsoft/powershell:nanoserver-1709
 
 USER ContainerAdministrator
 

@@ -1,9 +1,14 @@
 $ErrorActionPreference = 'Stop';
 $ProgressPreference = 'SilentlyContinue';
 
-if (!(Test-Path -Path '/data/eula.txt')) {
+if (!(Test-Path -Path minecraft)) {
+  mkdir minecraft
+}
+cd minecraft
+
+if (!(Test-Path -Path "$pwd\eula.txt")) {
   if ($Env:EULA -eq 'TRUE') {
-    [System.IO.File]::WriteAllText("C:\data\eula.txt", "# Generated via Docker on $(Get-Date)`neula=TRUE")
+    [System.IO.File]::WriteAllText("$pwd\eula.txt", "# Generated via Docker on $(Get-Date)`neula=TRUE")
   } else {
     echo ""
     echo "Please accept the Minecraft EULA at"
@@ -53,8 +58,6 @@ switch -regex ("X$Env:VERSION")
     break
   }
 }
-
-G:
 
 # function buildSpigotFromSource {
 #   echo "Building Spigot $VANILLA_VERSION from source, might take a while, get some coffee"
@@ -319,7 +322,7 @@ function installVanilla {
 
   if (!(Test-Path -Path $SERVER)) {
     echo "Downloading $SERVER ..."
-    Invoke-WebRequest -Uri "https://s3.amazonaws.com/Minecraft.Download/versions/$VANILLA_VERSION/$SERVER" -OutFile "minecraft_server.$VANILLA_VERSION.jar"
+    Invoke-WebRequest -Uri (Invoke-WebRequest -Uri ((Invoke-WebRequest -Uri 'https://launchermeta.mojang.com/mc/game/version_manifest.json' | ConvertFrom-Json).versions | ? id -eq $VANILLA_VERSION).url | ConvertFrom-Json).downloads.server.url -OutFile "minecraft_server.$VANILLA_VERSION.jar"
   }
 }
 
@@ -464,7 +467,7 @@ switch -regex ($Env:TYPE) {
 function setServerProp($prop, $val) {
   if ($val) {
     echo "Setting $prop to $val"
-    [System.IO.File]::WriteAllText('G:\server.properties', ((Get-Content -Raw .\server.properties) | % { $_ -Replace "$prop=(.*)`n", "$prop=$val`n" }))
+    [System.IO.File]::WriteAllText("$pwd\server.properties", ((Get-Content -Raw .\server.properties) | % { $_ -Replace "$prop=(.*)`n", "$prop=$val`n" }))
   }
 }
 

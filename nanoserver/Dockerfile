@@ -1,7 +1,53 @@
 # escape=`
-FROM openjdk:8u131-jdk-nanoserver
 
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+ARG BASETAG
+FROM microsoft/powershell:${BASETAG:-nanoserver} AS openjdk
+
+USER ContainerAdministrator
+
+ENV JAVA_HOME C:\\ojdkbuild
+ENV PATH "C:\Windows\system32;C:\Users\ContainerUser\AppData\Local\Microsoft\WindowsApps;C:\Program Files\PowerShell;${JAVA_HOME}\bin"
+
+SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+# https://github.com/ojdkbuild/ojdkbuild/releases
+ENV JAVA_VERSION 8u161
+ENV JAVA_OJDKBUILD_VERSION 1.8.0.161-1
+ENV JAVA_OJDKBUILD_ZIP java-1.8.0-openjdk-1.8.0.161-1.b14.ojdkbuild.windows.x86_64.zip
+ENV JAVA_OJDKBUILD_SHA256 7fcd9909173ed19f4ae6c0bba8b32b1e6bece2d49eb9d87271828be8121fc31b
+
+RUN $url = ('https://github.com/ojdkbuild/ojdkbuild/releases/download/{0}/{1}' -f $env:JAVA_OJDKBUILD_VERSION, $env:JAVA_OJDKBUILD_ZIP); `
+	Write-Host ('Downloading {0} ...' -f $url); `
+	Invoke-WebRequest -Uri $url -OutFile 'ojdkbuild.zip'; `
+	Write-Host ('Verifying sha256 ({0}) ...' -f $env:JAVA_OJDKBUILD_SHA256); `
+	if ((Get-FileHash ojdkbuild.zip -Algorithm sha256).Hash -ne $env:JAVA_OJDKBUILD_SHA256) { `
+		Write-Host 'FAILED!'; `
+		exit 1; `
+	}; `
+  `
+	Write-Host 'Expanding ...'; `
+	Expand-Archive ojdkbuild.zip -DestinationPath C:\; `
+	`
+	Write-Host 'Renaming ...'; `
+	Move-Item `
+		-Path ('C:\{0}' -f ($env:JAVA_OJDKBUILD_ZIP -Replace '.zip$', '')) `
+		-Destination $env:JAVA_HOME `
+	; `
+	`
+	Write-Host 'Verifying install ...'; `
+	Write-Host '  java -version'; java -version; `
+	Write-Host '  javac -version'; javac -version; `
+	`
+	Write-Host 'Removing ...'; `
+	Remove-Item ojdkbuild.zip -Force; `
+	`
+	Write-Host 'Complete.';
+
+USER ContainerUser
+
+FROM openjdk
+
+SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
 # TODO: Add Python for mcstatus
 # TODO: pip install mcstatus
@@ -14,35 +60,33 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 EXPOSE 25565 25575
 
 ADD https://github.com/itzg/rcon-cli/releases/download/1.3/rcon-cli_windows_amd64.exe /tools/rcon-cli.exe
-RUN cmd /c 'setx /M PATH "C:\tools;%PATH%"'
+# RUN cmd /c 'setx /M PATH "C:\tools;%PATH%"'
 
-COPY minecraft /minecraft
+# COPY minecraft /minecraft
 
-VOLUME ["C:\\data","C:\\mods","C:\\config","C:\\plugins","C:\\users\\minecraft"]
+# VOLUME ["C:\\data","C:\\mods","C:\\config","C:\\plugins","C:\\users\\minecraft"]
 
-# Workaround for symlink issues (https://blog.sixeyed.com/docker-volumes-on-windows-the-case-of-the-g-drive/)
-RUN Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\DOS Devices' -Name 'G:' -Value "\??\C:\data" -Type String;  
-WORKDIR G:\
+# WORKDIR C:\data
 
-ENTRYPOINT [ "powershell", "-File", "C:\\minecraft\\start.ps1" ]
+# ENTRYPOINT [ "pwsh", "-File", "C:\\minecraft\\start.ps1" ]
 
-ENV UID=1000 `
-    GID=1000 `
-    MOTD="A Minecraft Server Powered by Docker" `
-    JVM_XX_OPTS="-XX:+UseG1GC" `
-    MEMORY="1G" `
-    TYPE=VANILLA`
-    VERSION=LATEST `
-    FORGEVERSION=RECOMMENDED `
-    LEVEL=world `
-    PVP=true `
-    DIFFICULTY=easy `
-    ENABLE_RCON=true `
-    RCON_PORT=25575 `
-    RCON_PASSWORD=minecraft `
-    LEVEL_TYPE=DEFAULT `
-    GENERATOR_SETTINGS= `
-    WORLD= `
-    MODPACK= `
-    ONLINE_MODE=TRUE `
-    CONSOLE=true
+# ENV UID=1000 `
+#     GID=1000 `
+#     MOTD="A Minecraft Server Powered by Docker" `
+#     JVM_XX_OPTS="-XX:+UseG1GC" `
+#     MEMORY="1G" `
+#     TYPE=VANILLA`
+#     VERSION=LATEST `
+#     FORGEVERSION=RECOMMENDED `
+#     LEVEL=world `
+#     PVP=true `
+#     DIFFICULTY=easy `
+#     ENABLE_RCON=true `
+#     RCON_PORT=25575 `
+#     RCON_PASSWORD=minecraft `
+#     LEVEL_TYPE=DEFAULT `
+#     GENERATOR_SETTINGS= `
+#     WORLD= `
+#     MODPACK= `
+#     ONLINE_MODE=TRUE `
+#     CONSOLE=true
