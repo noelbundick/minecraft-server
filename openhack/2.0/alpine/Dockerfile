@@ -5,7 +5,7 @@ SHELL ["/bin/bash", "-c"]
 ENV EULA=TRUE \
     ONLINE_MODE=FALSE \
     SEED=-9363708386013540 \
-    VERSION=1.12.2 \
+    VERSION=1.13 \
     DIFFICULTY=peaceful \
     GUI=FALSE \
     CONSOLE=FALSE
