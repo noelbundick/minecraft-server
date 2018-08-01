@@ -1,7 +1,23 @@
 # escape=`
 
-ARG BASETAG
-FROM microsoft/powershell:${BASETAG:-nanoserver} AS openjdk
+# variants are [nanoserver, sac2016]
+ARG VARIANT=nanoserver
+
+# base tag used for the powershell image, ex: nanoserver-1709, nanoserver-1803, etc
+ARG POWERSHELL_BASETAG=nanoserver
+
+#================================================
+
+# openjdk has a nanoserver:sac2016 based image, so we'll use it
+FROM openjdk:8u131-jdk-nanoserver AS openjdk-sac2016
+# We'll also symlink pwsh.exe -> powershell.exe so we can use pwsh throughout
+RUN New-Item -ItemType SymbolicLink -Path C:\windows\system32\pwsh.exe -Value (get-command powershell.exe).Source
+SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+
+#================================================
+
+# For 1709+ we need to build our own openjdk base
+FROM microsoft/powershell:${POWERSHELL_BASETAG} AS openjdk-nanoserver
 
 USER ContainerAdministrator
 
@@ -43,11 +59,7 @@ RUN $url = ('https://github.com/ojdkbuild/ojdkbuild/releases/download/{0}/{1}' -
 	`
 	Write-Host 'Complete.';
 
-USER ContainerUser
-
-FROM openjdk
-
-SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
+FROM openjdk-${VARIANT} as minecraft
 
 # TODO: Add Python for mcstatus
 # TODO: pip install mcstatus
@@ -60,33 +72,35 @@ SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference
 EXPOSE 25565 25575
 
 ADD https://github.com/itzg/rcon-cli/releases/download/1.3/rcon-cli_windows_amd64.exe /tools/rcon-cli.exe
-# RUN cmd /c 'setx /M PATH "C:\tools;%PATH%"'
+RUN cmd /c 'setx /M PATH \"C:\tools;%PATH%\"'
 
-# COPY minecraft /minecraft
+COPY minecraft /minecraft
 
-# VOLUME ["C:\\data","C:\\mods","C:\\config","C:\\plugins","C:\\users\\minecraft"]
+VOLUME ["C:\\data","C:\\mods","C:\\config","C:\\plugins","C:\\users\\minecraft"]
 
-# WORKDIR C:\data
+WORKDIR C:\data
 
-# ENTRYPOINT [ "pwsh", "-File", "C:\\minecraft\\start.ps1" ]
+ENTRYPOINT [ "pwsh", "-File", "C:\\minecraft\\start.ps1" ]
 
-# ENV UID=1000 `
-#     GID=1000 `
-#     MOTD="A Minecraft Server Powered by Docker" `
-#     JVM_XX_OPTS="-XX:+UseG1GC" `
-#     MEMORY="1G" `
-#     TYPE=VANILLA`
-#     VERSION=LATEST `
-#     FORGEVERSION=RECOMMENDED `
-#     LEVEL=world `
-#     PVP=true `
-#     DIFFICULTY=easy `
-#     ENABLE_RCON=true `
-#     RCON_PORT=25575 `
-#     RCON_PASSWORD=minecraft `
-#     LEVEL_TYPE=DEFAULT `
-#     GENERATOR_SETTINGS= `
-#     WORLD= `
-#     MODPACK= `
-#     ONLINE_MODE=TRUE `
-#     CONSOLE=true
+ENV UID=1000 `
+    GID=1000 `
+    MOTD="A Minecraft Server Powered by Docker" `
+    JVM_XX_OPTS="-XX:+UseG1GC" `
+    MEMORY="1G" `
+    TYPE=VANILLA`
+    VERSION=LATEST `
+    FORGEVERSION=RECOMMENDED `
+    LEVEL=world `
+    PVP=true `
+    DIFFICULTY=easy `
+    ENABLE_RCON=true `
+    RCON_PORT=25575 `
+    RCON_PASSWORD=minecraft `
+    LEVEL_TYPE=DEFAULT `
+    GENERATOR_SETTINGS= `
+    WORLD= `
+    MODPACK= `
+    ONLINE_MODE=TRUE `
+    CONSOLE=true
+
+USER ContainerUser
