@@ -25,6 +25,6 @@ docker build -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERS
 docker build -t acanthamoeba/minecraft-server:nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
 
 # Create a `nanoserver` manifest that points to the various OS versions
-docker manifest create minecraft-server acanthamoeba/minecraft-server:nanoserver-1803 acanthamoeba/minecraft-server:nanoserver-1709 acanthamoeba/minecraft-server:nanoserver-sac2016
+docker manifest create acanthamoeba/minecraft-server:nanoserver acanthamoeba/minecraft-server:nanoserver-1803 acanthamoeba/minecraft-server:nanoserver-1709 acanthamoeba/minecraft-server:nanoserver-sac2016
 docker manifest push acanthamoeba/minecraft-server:nanoserver
 ```

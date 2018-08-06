@@ -7,8 +7,6 @@ FROM acanthamoeba/minecraft-server:${BASETAG} AS openhack-1.0
 
 SHELL ["pwsh", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'SilentlyContinue';"]
 
-USER ContainerAdministrator
-
 ENV EULA=TRUE `
     ONLINE_MODE=FALSE `
     SEED=-9363708386013540 `
@@ -25,18 +23,16 @@ RUN $minecraft = Start-Process -FilePath 'pwsh' -Args @('-File C:\minecraft\star
     rcon-cli --host 127.0.0.1 --port 25575 --password minecraft time set 6000; `
     rcon-cli --host 127.0.0.1 --port 25575 --password minecraft stop; ` 
     Wait-Process -InputObject $minecraft; `
-    rm eula.txt; `
+    rm minecraft\eula.txt; `
     rm minecraft.out; `
-    rm server.properties; `
-    rm -r ./logs; `
+    rm minecraft\server.properties; `
+    rm -r .\minecraft\logs; `
     cp -r C:\data C:\default;
 
 ENV EULA= `
     RCON_PASSWORD=cheesesteakjimmys
 
 COPY customstart.ps1 C:\minecraft
-
-USER ContainerUser
 
 ENTRYPOINT [ "pwsh", "-File", "C:\\minecraft\\customstart.ps1" ]
 
