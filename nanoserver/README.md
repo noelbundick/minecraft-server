@@ -14,14 +14,17 @@ docker build -m 2GB -t minecraft-server:nanoserver .
 docker run -d --rm -m 2GB -p 25565:25565 -p 25575:25575 -e EULA=TRUE -v c:/temp/minecraftdata:c:/data minecraft-server:nanoserver
 ```
 
-## Note on connecting from localhost
+## Development
 
-At the time of this writing, you can't use localhost to access published ports, which means that your server will start correctly, but you won't be able to connect on localhost. You'll need to use the container IP instead.
+As of 2018-08-03, you will need to enable set `"experimental": "enabled"` in your `.docker/config.json` file to enable `docker manifest` commands
 
 ```powershell
-# Get the ID/name of your container
-docker ps
+# Build images for each OS version
+docker build -t acanthamoeba/minecraft-server:nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
+docker build -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
+docker build -t acanthamoeba/minecraft-server:nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
 
-# Get the IP of your container
-docker inspect --format '{{ range .NetworkSettings.Networks }}{{.IPAddress}}{{end}}' <container_name_here>
+# Create a `nanoserver` manifest that points to the various OS versions
+docker manifest create minecraft-server acanthamoeba/minecraft-server:nanoserver-1803 acanthamoeba/minecraft-server:nanoserver-1709 acanthamoeba/minecraft-server:nanoserver-sac2016
+docker manifest push acanthamoeba/minecraft-server:nanoserver
 ```
