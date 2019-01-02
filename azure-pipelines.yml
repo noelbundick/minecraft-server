@@ -10,6 +10,7 @@ jobs:
     displayName: Build nanoserver images
     inputs:
       targetType: inline
+      workingDirectory: nanoserver
       script: |
         docker build -t acanthamoeba/minecraft-server:nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
         docker build -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
