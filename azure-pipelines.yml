@@ -1,0 +1,13 @@
+pool:
+  vmImage: 'Ubuntu 16.04'
+
+variables:
+  dummy: value
+
+steps:
+- task: Bash@3
+  displayName: Hello world
+  inputs:
+    targetType: inline
+    script: |
+      echo 'Hello, world!'
