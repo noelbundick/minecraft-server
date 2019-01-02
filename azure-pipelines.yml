@@ -1,13 +1,16 @@
-pool:
-  vmImage: 'Ubuntu 16.04'
-
 variables:
   dummy: value
 
-steps:
-- task: Bash@3
-  displayName: Hello world
-  inputs:
-    targetType: inline
-    script: |
-      echo 'Hello, world!'
+jobs:
+- job: windows
+  pool:
+    vmImage: 'win1803'
+  steps:
+  - task: Bash@3
+    displayName: Build nanoserver images
+    inputs:
+      targetType: inline
+      script: |
+        docker build -t acanthamoeba/minecraft-server:nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
+        docker build -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
+        docker build -t acanthamoeba/minecraft-server:nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
