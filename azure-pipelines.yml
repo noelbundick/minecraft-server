@@ -1,5 +1,7 @@
 variables:
-  imageName: acanthamoeba/minecraft-server
+  azureSubscription: 'TE Account - NoBun (6c1f4f3b-f65f-4667-8f9e-b9c48e09cd6b)'
+  acr: nobun
+  imageName: $(acr).azurecr.io/acanthamoeba/minecraft-server
   dockerEEUrl: https://download.docker.com/components/engine/windows-server/18.09/docker-18.09.0.zip
 
 jobs:
@@ -25,8 +27,13 @@ jobs:
         docker build --isolation hyperv -t $(imageName):nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
         docker build --isolation hyperv -t $(imageName):nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
         docker build --isolation hyperv -t $(imageName):nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
-
-        docker login -u $(dockerUsername) -p $(dockerPassword)
+  - task: AzureCLI@1
+    displayName: Push images to ACR
+    inputs:
+      azureSubscription: $(azureSubscription)
+      scriptLocation: inlineScript
+      inlineScript: |
+        az acr login -n $(acr)
         docker push $(imageName):nanoserver-1803
         docker push $(imageName):nanoserver-1709
         docker push $(imageName):nanoserver-sac2016
