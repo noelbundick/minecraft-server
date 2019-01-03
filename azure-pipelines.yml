@@ -1,37 +1,39 @@
 variables:
-  azureSubscription: 'TE Account - NoBun (6c1f4f3b-f65f-4667-8f9e-b9c48e09cd6b)'
-  acr: nobun
+  imageName: acanthamoeba/minecraft-server
   dockerUrl: https://download.docker.com/components/engine/windows-server/18.09/docker-18.09.0.zip
 
 jobs:
 - job: windows
   pool:
     vmImage: 'win1803'
+  strategy:
+    matrix:
+      1803:
+        imageTag: nanoserver-1803
+        VARIANT: nanoserver
+        POWERSHELL_BASETAG: nanoserver-1803
+      1709:
+        imageTag: nanoserver-1709
+        VARIANT: nanoserver
+        POWERSHELL_BASETAG: nanoserver-1709
+      2016:
+        imageTag: nanoserver-sac2016
+        VARIANT: sac-2016
+        POWERSHELL_BASETAG: nanoserver
   steps:
+  - task: PowerShell@2
+    displayName: Update Docker
+    inputs:
+      targetType: inline
+      script: |
+        Invoke-WebRequest -UseBasicParsing -OutFile docker.zip $(dockerUrl)
+        Stop-Service docker
+        Expand-Archive docker.zip -DestinationPath $Env:ProgramFiles -Force
+        Start-Service docker
   - task: PowerShell@2
     displayName: Build nanoserver images
     inputs:
       targetType: inline
       workingDirectory: nanoserver
       script: |
-        Invoke-WebRequest -UseBasicParsing -OutFile docker.zip $(dockerUrl)
-        Stop-Service docker
-        Expand-Archive docker.zip -DestinationPath $Env:ProgramFiles -Force
-        Start-Service docker
-        
-        docker build --isolation hyperv -t acanthamoeba/minecraft-server:nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
-        docker build --isolation hyperv -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
-        #docker build --isolation hyperv -t acanthamoeba/minecraft-server:nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
-- job: linux
-  pool:
-    vmImage: 'ubuntu-16.04'
-  steps:
-  - task: AzureCLI@1
-    displayName: Build nanoserver images via ACR
-    inputs:
-      azureSubscription: $(azureSubscription)
-      workingDirectory: nanoserver
-      scriptLocation: inlineScript
-      inlineScript: |
-        az acr build -r $(acr) --build-arg POWERSHELL_BASETAG=nanoserver-1803 --os Windows -t acanthamoeba/minecraft-server:nanoserver-1803 .
-        az acr build -r $(acr) --build-arg POWERSHELL_BASETAG=nanoserver-1709 --os Windows -t acanthamoeba/minecraft-server:nanoserver-1709 .
+        docker build --isolation hyperv -t $(imageName):$(imageTag) --build-arg VARIANT=$(VARIANT) --build-arg POWERSHELL_BASETAG=$(POWERSHELL_BASETAG) --target minecraft .
