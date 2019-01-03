@@ -30,6 +30,7 @@ jobs:
     displayName: Build nanoserver images via ACR
     inputs:
       azureSubscription: $(azureSubscription)
+      workingDirectory: nanoserver
       scriptLocation: inlineScript
       inlineScript: |
         az acr build -r $(acr) --build-arg POWERSHELL_BASETAG=nanoserver-1803 --os Windows -t acanthamoeba/minecraft-server:nanoserver-1803 .
