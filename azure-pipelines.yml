@@ -12,6 +12,7 @@ jobs:
       targetType: inline
       workingDirectory: nanoserver
       script: |
+        [System.Environment]::OSVersion.Version  
         docker version
 
         # On an online machine, download the zip file.
@@ -46,6 +47,7 @@ jobs:
         Start-Service docker
 
         docker version
-        docker build -t acanthamoeba/minecraft-server:nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
-        docker build -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
-        docker build -t acanthamoeba/minecraft-server:nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
+        
+        docker build --isolation hyperv -t acanthamoeba/minecraft-server:nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
+        docker build --isolation hyperv -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
+        docker build --isolation hyperv -t acanthamoeba/minecraft-server:nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
