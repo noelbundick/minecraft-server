@@ -11,6 +11,7 @@ steps:
   inputs:
     azureSubscription: $(azureSubscription)
     scriptLocation: inlineScript
+    workingDirectory: nanoserver
     inlineScript: |
       az acr build -r $(acr) --build-arg POWERSHELL_BASETAG=nanoserver-1803 --os Windows .
       az acr build -r $(acr) --build-arg POWERSHELL_BASETAG=nanoserver-1709 --os Windows .
