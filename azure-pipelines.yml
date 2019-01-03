@@ -1,6 +1,6 @@
 variables:
   imageName: acanthamoeba/minecraft-server
-  dockerUrl: https://download.docker.com/components/engine/windows-server/18.09/docker-18.09.0.zip
+  dockerEEUrl: https://download.docker.com/components/engine/windows-server/18.09/docker-18.09.0.zip
 
 jobs:
 - job: windows
@@ -12,7 +12,7 @@ jobs:
     inputs:
       targetType: inline
       script: |
-        Invoke-WebRequest -UseBasicParsing -OutFile docker.zip $(dockerUrl)
+        Invoke-WebRequest -UseBasicParsing -OutFile docker.zip $(dockerEEUrl)
         Stop-Service docker
         Expand-Archive docker.zip -DestinationPath $Env:ProgramFiles -Force
         Start-Service docker
@@ -26,5 +26,11 @@ jobs:
         docker build --isolation hyperv -t $(imageName):nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
         docker build --isolation hyperv -t $(imageName):nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
 
+        docker login -u $(dockerUsername) -p $(dockerPassword)
+        docker push $(imageName):nanoserver-1803
+        docker push $(imageName):nanoserver-1709
+        docker push $(imageName):nanoserver-sac2016
+
         $Env:DOCKER_CLI_EXPERIMENTAL = "enabled"
-        docker manifest create acanthamoeba/minecraft-server:nanoserver acanthamoeba/minecraft-server:nanoserver-1803 acanthamoeba/minecraft-server:nanoserver-1709 acanthamoeba/minecraft-server:nanoserver-sac2016
+        docker manifest create $(imageName):nanoserver $(imageName):nanoserver-1803 $(imageName):nanoserver-1709 $(imageName):nanoserver-sac2016
+        docker push $(imageName):nanoserver
