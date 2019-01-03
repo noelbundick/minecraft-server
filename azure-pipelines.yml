@@ -6,20 +6,6 @@ jobs:
 - job: windows
   pool:
     vmImage: 'win1803'
-  strategy:
-    matrix:
-      1803:
-        imageTag: nanoserver-1803
-        VARIANT: nanoserver
-        POWERSHELL_BASETAG: nanoserver-1803
-      1709:
-        imageTag: nanoserver-1709
-        VARIANT: nanoserver
-        POWERSHELL_BASETAG: nanoserver-1709
-      2016:
-        imageTag: nanoserver-sac2016
-        VARIANT: sac-2016
-        POWERSHELL_BASETAG: nanoserver
   steps:
   - task: PowerShell@2
     displayName: Update Docker
@@ -35,5 +21,11 @@ jobs:
     inputs:
       targetType: inline
       workingDirectory: nanoserver
+      env:
+        DOCKER_CLI_EXPERIMENTAL: enabled
       script: |
-        docker build --isolation hyperv -t $(imageName):$(imageTag) --build-arg VARIANT=$(VARIANT) --build-arg POWERSHELL_BASETAG=$(POWERSHELL_BASETAG) --target minecraft .
+        docker build --isolation hyperv -t $(imageName):nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
+        docker build --isolation hyperv -t $(imageName):nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
+        docker build --isolation hyperv -t $(imageName):nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
+        
+        docker manifest create acanthamoeba/minecraft-server:nanoserver acanthamoeba/minecraft-server:nanoserver-1803 acanthamoeba/minecraft-server:nanoserver-1709 acanthamoeba/minecraft-server:nanoserver-sac2016
