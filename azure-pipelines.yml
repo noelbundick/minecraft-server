@@ -21,11 +21,10 @@ jobs:
     inputs:
       targetType: inline
       workingDirectory: nanoserver
-      env:
-        DOCKER_CLI_EXPERIMENTAL: enabled
       script: |
         docker build --isolation hyperv -t $(imageName):nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
         docker build --isolation hyperv -t $(imageName):nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
         docker build --isolation hyperv -t $(imageName):nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
-        
+
+        $Env:DOCKER_CLI_EXPERIMENTAL = "enabled"
         docker manifest create acanthamoeba/minecraft-server:nanoserver acanthamoeba/minecraft-server:nanoserver-1803 acanthamoeba/minecraft-server:nanoserver-1709 acanthamoeba/minecraft-server:nanoserver-sac2016
