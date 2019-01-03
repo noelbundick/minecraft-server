@@ -1,18 +1,20 @@
-pool:
-  vmImage: 'Ubuntu 16.04'
-
 variables:
-  azureSubscription: 'TE Account - NoBun (6c1f4f3b-f65f-4667-8f9e-b9c48e09cd6b)'
-  acr: nobun
+  dummy: value
 
-steps:
-- task: AzureCLI@1
-  displayName: Build nanoserver images
-  inputs:
-    azureSubscription: $(azureSubscription)
-    scriptLocation: inlineScript
-    workingDirectory: nanoserver
-    inlineScript: |
-      az acr build -r $(acr) --build-arg POWERSHELL_BASETAG=nanoserver-1803 --os Windows .
-      az acr build -r $(acr) --build-arg POWERSHELL_BASETAG=nanoserver-1709 --os Windows .
-      az acr build -r $(acr) --build-arg VARIANT=sac2016 --os Windows .
+jobs:
+- job: windows
+  pool:
+    vmImage: 'win1803'
+  steps:
+  - task: PowerShell@2
+    displayName: Build nanoserver images
+    inputs:
+      targetType: inline
+      workingDirectory: nanoserver
+      script: |
+        Install-Module DockerMsftProvider -Force
+        Install-Package Docker -ProviderName DockerMsftProvider -Force
+        docker version
+        docker build -t acanthamoeba/minecraft-server:nanoserver-1803 --build-arg POWERSHELL_BASETAG=nanoserver-1803 --target minecraft .
+        docker build -t acanthamoeba/minecraft-server:nanoserver-1709 --build-arg POWERSHELL_BASETAG=nanoserver-1709 --target minecraft .
+        docker build -t acanthamoeba/minecraft-server:nanoserver-sac2016 --build-arg VARIANT=sac2016 --target minecraft .
